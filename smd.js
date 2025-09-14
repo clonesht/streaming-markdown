@@ -421,6 +421,7 @@ function clear_root_pending(p) {
     p.indent = ""
     p.indent_len = 0
     p.pending = ""
+    p.last = ""
 }
 
 /**
@@ -465,13 +466,24 @@ function is_alnum(charcode) {
            (charcode >= 97 && charcode <= 122)   // a-z
 }
 
+
+/**
+ * @param   {string} char
+ * @returns {boolean} */
+function is_non_formatting_char(char) {
+    const pattern = /^[a-z\u00E0-\u00FC\.]+$/i
+    return pattern.test(char)
+}
+
 /**
  * Parse and render another chunk of markdown.
  * @param   {Parser} p
  * @param   {string} chunk
  * @returns {void  } */
 export function parser_write(p, chunk) {
+    let last_check_hit = true;
     for (const char of chunk) {
+        last_check_hit = true
 
         /*
          Handle newlines
@@ -1449,11 +1461,12 @@ export function parser_write(p, chunk) {
             p.token !== EQUATION_BLOCK &&
             p.token !== EQUATION_INLINE &&
             'h' === char &&
-           (" " === p.pending ||
-            ""  === p.pending)
+           (" " === p.last ||
+            ""  === p.last)
         ) {
             p.text   += p.pending
             p.pending = char
+            p.last = char
 
             p.token = MAYBE_URL
             continue
@@ -1464,6 +1477,13 @@ export function parser_write(p, chunk) {
         */
         p.text += p.pending
         p.pending = char
+        p.last = char
+        last_check_hit = false
+    }
+
+    if (last_check_hit === false && is_non_formatting_char(p.pending)) {
+        p.text += p.pending;
+        p.pending = ""
     }
 
     add_text(p)
