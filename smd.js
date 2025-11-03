@@ -180,6 +180,8 @@ export const heading_to_level = (token) => {
  * @typedef  {object      } Parser
  * @property {Any_Renderer} renderer        - {@link Renderer} interface
  * @property {string      } text            - Text to be added to the last token in the next flush
+ * @property {string      } last_text       - Last text added
+ * @property {number      } last_token      - Last rendered token
  * @property {string      } pending         - Characters for identifying tokens
  * @property {Uint32Array } tokens          - Current token and it's parents (a slice of a tree)
  * @property {number      } len             - Number of tokens in types without root
@@ -207,7 +209,9 @@ export function parser(renderer) {
     return {
         renderer   : renderer,
         text       : "",
+        last_text  : "",
         pending    : "",
+        last_token : DOCUMENT,
         tokens     : tokens,
         len        : 0,
         token      : DOCUMENT,
@@ -240,6 +244,8 @@ function add_text(p) {
     if (p.text.length === 0) return
     console.assert(p.len > 0, "Never adding text to root")
     p.renderer.add_text(p.renderer.data, p.text)
+    p.last_text = p.text
+    p.last_token = null;
     p.text = ""
 }
 
@@ -276,6 +282,12 @@ function end_token(p) {
     p.renderer.end_token(p.renderer.data)
 }
 
+function render_token(p, data, token) {
+    p.renderer.add_token(data, token);
+    p.last_token = token;
+    p.last_text = "";
+}
+
 /**
  * @param   {Parser} p
  * @param   {Token } token
@@ -299,7 +311,7 @@ function add_token(p, token) {
     p.len += 1
     p.tokens[p.len] = token
     p.token = token
-    p.renderer.add_token(p.renderer.data, token)
+    render_token(p, p.renderer.data, token)
 }
 
 /**
@@ -622,7 +634,7 @@ export function parser_write(p, chunk) {
                     case '\n':
                         if (p.hr_chars < 3) break
                         end_tokens_to_indent(p, p.indent_len)
-                        p.renderer.add_token(p.renderer.data, RULE)
+                        render_token(p, p.renderer.data, RULE)
                         p.renderer.end_token(p.renderer.data)
                         clear_root_pending(p)
                         p.hr_chars = 0
@@ -755,7 +767,7 @@ export function parser_write(p, chunk) {
             /* Add a line break and continue in previous token */
             if (p.token === LINE_BREAK) {
                 p.token = p.tokens[p.len]
-                p.renderer.add_token(p.renderer.data, LINE_BREAK)
+                render_token(p, p.renderer.data, LINE_BREAK)
                 p.renderer.end_token(p.renderer.data)
             }
             /* Code Block */
@@ -968,7 +980,7 @@ export function parser_write(p, chunk) {
                 continue
             case 3:
                 if (' ' !== char) break // fail
-                p.renderer.add_token(p.renderer.data, CHECKBOX)
+                render_token(p, p.renderer.data, CHECKBOX)
                 if ('x' === p.pending[1]) {
                     p.renderer.set_attr(p.renderer.data, CHECKED, "")
                 }
@@ -1205,7 +1217,7 @@ export function parser_write(p, chunk) {
                 if (char === '>') {
                     add_text(p)
                     p.token = p.tokens[p.len]
-                    p.renderer.add_token(p.renderer.data, LINE_BREAK)
+                    render_token(p, p.renderer.data, LINE_BREAK)
                     p.renderer.end_token(p.renderer.data)
                     p.pending = ""
                     continue
@@ -1321,6 +1333,9 @@ export function parser_write(p, chunk) {
             if ('_' === symbol) {
                 italic = ITALIC_UND
                 strong = STRONG_UND
+                if (!p.last_text.endsWith(" ") && p.last_token !== LINE_BREAK && p.last_token !== PARAGRAPH) {
+                    break
+                }
             }
 
             if (p.pending.length === 1) {
