@@ -180,8 +180,6 @@ export const heading_to_level = (token) => {
  * @typedef  {object      } Parser
  * @property {Any_Renderer} renderer        - {@link Renderer} interface
  * @property {string      } text            - Text to be added to the last token in the next flush
- * @property {string      } last_text       - Last text added
- * @property {number      } last_token      - Last rendered token
  * @property {string      } pending         - Characters for identifying tokens
  * @property {Uint32Array } tokens          - Current token and it's parents (a slice of a tree)
  * @property {number      } len             - Number of tokens in types without root
@@ -195,6 +193,9 @@ export const heading_to_level = (token) => {
  * @property {string      } hr_char         - For horizontal rule parsing
  * @property {number      } hr_chars        - For horizontal rule parsing
  * @property {number      } table_state
+ * @property {string      } last_char       - Last char
+ * @property {string      } last_text       - Last text added
+ * @property {number      } last_token      - Last rendered token
  */
 
 const TOKEN_ARRAY_CAP = 24
@@ -209,9 +210,7 @@ export function parser(renderer) {
     return {
         renderer   : renderer,
         text       : "",
-        last_text  : "",
         pending    : "",
-        last_token : DOCUMENT,
         tokens     : tokens,
         len        : 0,
         token      : DOCUMENT,
@@ -224,6 +223,9 @@ export function parser(renderer) {
         indent     : "",
         indent_len : 0,
         table_state: 0,
+        last_char  : "",
+        last_text  : "",
+        last_token : DOCUMENT,
     }
 }
 
@@ -433,7 +435,7 @@ function clear_root_pending(p) {
     p.indent = ""
     p.indent_len = 0
     p.pending = ""
-    p.last = ""
+    p.last_char = ""
 }
 
 /**
@@ -1476,12 +1478,12 @@ export function parser_write(p, chunk) {
             p.token !== EQUATION_BLOCK &&
             p.token !== EQUATION_INLINE &&
             'h' === char &&
-           (" " === p.last ||
-            ""  === p.last)
+           (" " === p.last_char ||
+            ""  === p.last_char)
         ) {
             p.text   += p.pending
             p.pending = char
-            p.last = char
+            p.last_char = char
 
             p.token = MAYBE_URL
             continue
@@ -1492,7 +1494,7 @@ export function parser_write(p, chunk) {
         */
         p.text += p.pending
         p.pending = char
-        p.last = char
+        p.last_char = char
         last_check_hit = false
     }
 
