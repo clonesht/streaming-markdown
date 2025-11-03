@@ -2052,3 +2052,24 @@ test_single_write("Escaped dollar sign",
         children: ["$foo$"]
     }]
 )
+
+test_single_write("Underline word",
+    "this is any_variable_name in the text",
+    [{
+        type: smd.Token.Paragraph,
+        children: ["this is any_variable_name in the text"]
+    }]
+)
+
+test_single_write("Italic later on line start",
+    "this:\n_italic_",
+    [{
+        type: smd.Token.Paragraph,
+        children: [
+            "this:",
+            { type: smd.Token.Line_Break, children: [] },
+            { type: smd.Token.Italic_Und, children: ["italic"] }
+        ]
+    }]
+)
+
