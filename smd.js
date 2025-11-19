@@ -937,7 +937,9 @@ export function parser_write(p, chunk) {
         case CODE_INLINE:
             switch (char) {
             case '`':
-                if (pending_with_char.length ===
+                if (p.pending == "\\") {
+                    p.pending = char;
+                } else if (pending_with_char.length ===
                     p.fence_start + Number(p.pending[0] === ' ') // 0 or 1 for space
                 ) {
                     add_text(p)
@@ -954,6 +956,10 @@ export function parser_write(p, chunk) {
                 p.token = LINE_BREAK
                 p.blockquote_idx = 0
                 add_text(p)
+                continue
+            case '\\':
+                p.text += p.pending
+                p.pending = char
                 continue
             /* Trim space before ` */
             case ' ':
@@ -1241,6 +1247,7 @@ export function parser_write(p, chunk) {
         case '\\':
             if (p.token === IMAGE ||
                 p.token === EQUATION_BLOCK ||
+                p.token === CODE_INLINE ||
                 p.token === EQUATION_INLINE)
                 break
 
