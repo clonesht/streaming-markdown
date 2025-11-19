@@ -2073,3 +2073,25 @@ test_single_write("Italic later on line start",
     }]
 )
 
+test_single_write("Italic later on list item start",
+    "this:\n\n - _italic_",
+    [{
+        type: smd.Token.Paragraph,
+        children: [
+            "this:"
+        ]
+    },
+
+    {
+        type: smd.Token.List_Unordered,
+        children: [
+            {
+                type: smd.Token.List_Item,
+                children: [
+                    { type: smd.Token.Italic_Und, children: ["italic"] }
+                ]
+            }
+        ]
+    }]
+)
+
