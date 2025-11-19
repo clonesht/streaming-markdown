@@ -531,6 +531,7 @@ export function parser_write(p, chunk) {
         case LINE_BREAK:
         case DOCUMENT:
         case BLOCKQUOTE:
+        case LIST_ITEM:
         case LIST_ORDERED:
         case LIST_UNORDERED:
             console.assert(p.text.length === 0, "Root should not have any text")
@@ -1342,7 +1343,8 @@ export function parser_write(p, chunk) {
             if ('_' === symbol) {
                 italic = ITALIC_UND
                 strong = STRONG_UND
-                if (!p.last_text.endsWith(" ") && p.last_token !== LINE_BREAK && p.last_token !== PARAGRAPH) {
+                const is_word_start = p.last_text.endsWith(" ") || p.last_text === ""
+                if (!is_word_start) {
                     break
                 }
             }
