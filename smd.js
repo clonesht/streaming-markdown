@@ -908,7 +908,7 @@ export function parser_write(p, chunk) {
                 /*  ```\n<code>\n```\n
                 |                    ^
                 */
-                if (pending_with_char.length === p.fence_start + p.fence_end + 1) {
+                if (pending_with_char.length === p.fence_start + p.fence_end + 1 && pending_with_char.startsWith("\n")) {
                     add_text(p)
                     end_token(p)
                     p.pending = ""
