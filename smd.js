@@ -1099,7 +1099,7 @@ export function parser_write(p, chunk) {
              \[?  or  $$?
                ^        ^
             */
-            if (char === '\n') {
+            if (char === '\n' || char === ' ' || char == "\\") {
                 add_text(p)
                 add_token(p, EQUATION_BLOCK)
                 p.pending = ""
@@ -1197,6 +1197,7 @@ export function parser_write(p, chunk) {
             */
             if (' ' === char ||
                 '\n'=== char ||
+                '['=== char ||
                 '\\'=== char
             ) {
                 p.renderer.set_attr(p.renderer.data, HREF, p.pending)
@@ -1432,7 +1433,7 @@ export function parser_write(p, chunk) {
                 /* $123
                     ^
                 */
-                else if (is_delimeter_or_number(char.charCodeAt(0))) {
+                else if (is_delimeter_or_number(char.charCodeAt(0)) && char !== " ") {
                     break
                 }
                 /* $EQUATION_INLINE$
