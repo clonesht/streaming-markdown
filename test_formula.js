@@ -27,3 +27,9 @@ console.log("------");
 parser = smd.parser(renderer);
 smd.parser_write(parser, "$$ \\text{Total Memory} $$\n\n## Head\n\n Text `code`")
 smd.parser_end(parser)
+
+console.log("------");
+
+parser = smd.parser(renderer);
+smd.parser_write(parser, "Any-${variable} in Text")
+smd.parser_end(parser)

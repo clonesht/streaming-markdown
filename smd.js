@@ -1436,6 +1436,12 @@ export function parser_write(p, chunk) {
                 else if (is_delimeter_or_number(char.charCodeAt(0)) && char !== " ") {
                     break
                 }
+
+                /* Python f-style variable ${anyvar} */
+
+                else if (char === "{") {
+                    break
+                }
                 /* $EQUATION_INLINE$
                     ^
                 */
